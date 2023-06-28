@@ -2,6 +2,8 @@ package com.github.dmitributorchin.legal.helper;
 
 import com.github.dmitributorchin.legal.helper.agency.AgencyEntity;
 import com.github.dmitributorchin.legal.helper.agency.AgencyRepository;
+import com.github.dmitributorchin.legal.helper.claim.ClaimEntity;
+import com.github.dmitributorchin.legal.helper.claim.ClaimRepository;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerEntity;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerRepository;
 import com.github.dmitributorchin.legal.helper.region.RegionEntity;
@@ -19,24 +21,31 @@ public class TestDataInitializer implements ApplicationRunner {
     private final AgencyRepository agencyRepository;
     private final RegionRepository regionRepository;
     private final LawyerRepository lawyerRepository;
+    private final ClaimRepository claimRepository;
 
     @Override
     public void run(ApplicationArguments args) {
-        agencyRepository.saveAll(List.of(
-                createAgency("Местный Суд"),
-                createAgency("Верховный Суд")
-        ));
+        var localCourt = createAgency("Местный Суд");
+        var supremeCourt = createAgency("Верховный Суд");
+        agencyRepository.saveAll(List.of(localCourt, supremeCourt));
 
         var northRegion = createRegion("Северный");
         var southRegion = createRegion("Южный");
         regionRepository.saveAll(List.of(northRegion, southRegion));
 
-        lawyerRepository.saveAll(List.of(
-                createLawyer("A101", "Алексей", "Иванов", northRegion),
-                createLawyer("A102", "Иван", "Петров", northRegion),
-                createLawyer("B101", "Елена", "Козлова", southRegion),
-                createLawyer("B102", "Игорь", "Алексеев", southRegion),
-                createLawyer("B103", "Федор", "Гром", southRegion)
+        var alex = createLawyer("A101", "Алексей", "Иванов", northRegion);
+        var ivan = createLawyer("A102", "Иван", "Петров", northRegion);
+        var helen = createLawyer("B101", "Елена", "Козлова", southRegion);
+        var igor = createLawyer("B102", "Игорь", "Алексеев", southRegion);
+        var fedor = createLawyer("B103", "Федор", "Гром", southRegion);
+        lawyerRepository.saveAll(List.of(alex, ivan, helen, igor, fedor));
+
+        claimRepository.saveAll(List.of(
+                createClaim("1", localCourt, northRegion, alex),
+                createClaim("2", supremeCourt, northRegion, ivan),
+                createClaim("3", localCourt, southRegion, helen),
+                createClaim("4", supremeCourt, southRegion, igor),
+                createClaim("5", supremeCourt, southRegion, fedor)
         ));
     }
 
@@ -58,6 +67,15 @@ public class TestDataInitializer implements ApplicationRunner {
         entity.setFirstName(firstName);
         entity.setLastName(lastName);
         entity.setRegion(region);
+        return entity;
+    }
+
+    private ClaimEntity createClaim(String number, AgencyEntity agency, RegionEntity region, LawyerEntity lawyer) {
+        var entity = new ClaimEntity();
+        entity.setNumber(number);
+        entity.setAgency(agency);
+        entity.setRegion(region);
+        entity.setLawyer(lawyer);
         return entity;
     }
 }
