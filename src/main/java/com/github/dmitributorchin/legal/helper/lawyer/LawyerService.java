@@ -14,7 +14,13 @@ public class LawyerService {
     public List<Lawyer> getAllLawyers() {
         return lawyerRepository.findAll()
                 .stream()
-                .map(entity -> new Lawyer(entity.getId().toString(), entity.getSsn(), entity.getFirstName(), entity.getLastName()))
+                .map(entity -> new Lawyer(
+                        entity.getId().toString(),
+                        entity.getSsn(),
+                        entity.getFirstName(),
+                        entity.getLastName(),
+                        entity.getRegion().getId().toString()
+                ))
                 .collect(Collectors.toList());
     }
 }

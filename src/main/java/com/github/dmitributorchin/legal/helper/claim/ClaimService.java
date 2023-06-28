@@ -14,7 +14,13 @@ public class ClaimService {
     public List<Claim> getAllClaims() {
         return claimRepository.findAll()
                 .stream()
-                .map(entity -> new Claim(entity.getId().toString(), entity.getNumber()))
+                .map(entity -> new Claim(
+                        entity.getId().toString(),
+                        entity.getNumber(),
+                        entity.getAgency().getId().toString(),
+                        entity.getRegion().getId().toString(),
+                        entity.getLawyer().getId().toString()
+                ))
                 .collect(Collectors.toList());
     }
 }
