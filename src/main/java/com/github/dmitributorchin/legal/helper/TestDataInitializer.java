@@ -2,8 +2,8 @@ package com.github.dmitributorchin.legal.helper;
 
 import com.github.dmitributorchin.legal.helper.agency.AgencyEntity;
 import com.github.dmitributorchin.legal.helper.agency.AgencyRepository;
-import com.github.dmitributorchin.legal.helper.claim.ClaimEntity;
-import com.github.dmitributorchin.legal.helper.claim.ClaimRepository;
+import com.github.dmitributorchin.legal.helper.claim.ClaimService;
+import com.github.dmitributorchin.legal.helper.claim.CreateClaim;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerEntity;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerRepository;
 import com.github.dmitributorchin.legal.helper.region.RegionEntity;
@@ -21,7 +21,7 @@ public class TestDataInitializer implements ApplicationRunner {
     private final AgencyRepository agencyRepository;
     private final RegionRepository regionRepository;
     private final LawyerRepository lawyerRepository;
-    private final ClaimRepository claimRepository;
+    private final ClaimService claimService;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -40,13 +40,11 @@ public class TestDataInitializer implements ApplicationRunner {
         var fedor = createLawyer("B103", "Федор", "Гром", southRegion);
         lawyerRepository.saveAll(List.of(alex, ivan, helen, igor, fedor));
 
-        claimRepository.saveAll(List.of(
-                createClaim("1", localCourt, northRegion, alex),
-                createClaim("2", supremeCourt, northRegion, ivan),
-                createClaim("3", localCourt, southRegion, helen),
-                createClaim("4", supremeCourt, southRegion, igor),
-                createClaim("5", supremeCourt, southRegion, fedor)
-        ));
+        claimService.createClaim(createClaim("1", localCourt, northRegion, alex));
+        claimService.createClaim(createClaim("2", supremeCourt, northRegion, ivan));
+        claimService.createClaim(createClaim("3", localCourt, southRegion, helen));
+        claimService.createClaim(createClaim("4", supremeCourt, southRegion, igor));
+        claimService.createClaim(createClaim("5", supremeCourt, southRegion, fedor));
     }
 
     private AgencyEntity createAgency(String title) {
@@ -70,12 +68,12 @@ public class TestDataInitializer implements ApplicationRunner {
         return entity;
     }
 
-    private ClaimEntity createClaim(String number, AgencyEntity agency, RegionEntity region, LawyerEntity lawyer) {
-        var entity = new ClaimEntity();
-        entity.setNumber(number);
-        entity.setAgency(agency);
-        entity.setRegion(region);
-        entity.setLawyer(lawyer);
-        return entity;
+    private CreateClaim createClaim(String number, AgencyEntity agency, RegionEntity region, LawyerEntity lawyer) {
+        return new CreateClaim(
+                number,
+                agency.getId().toString(),
+                region.getId().toString(),
+                lawyer.getId().toString()
+        );
     }
 }

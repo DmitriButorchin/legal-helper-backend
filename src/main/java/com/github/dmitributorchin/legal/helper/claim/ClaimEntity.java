@@ -18,6 +18,7 @@ public class ClaimEntity {
     @GeneratedValue
     private UUID id;
 
+    @Column(unique = true)
     private String number;
 
     @ManyToOne(optional = false)

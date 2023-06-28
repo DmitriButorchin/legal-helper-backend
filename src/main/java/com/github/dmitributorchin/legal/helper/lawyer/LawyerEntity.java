@@ -23,4 +23,6 @@ public class LawyerEntity {
     @ManyToOne(optional = false)
     @JoinColumn(name = "region_id", nullable = false)
     private RegionEntity region;
+
+    private int claimCount;
 }
