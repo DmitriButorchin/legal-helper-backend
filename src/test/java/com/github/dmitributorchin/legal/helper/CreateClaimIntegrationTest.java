@@ -73,13 +73,42 @@ public class CreateClaimIntegrationTest {
                 .returnResult(JsonResponse.class)
                 .getResponseBody()
                 .blockFirst();
-        var errors = response.errors().stream().map(JsonError::title).toList();
-        assertThat(errors).containsExactlyInAnyOrder(
-                "number must not be blank",
-                "agencyId must not be blank",
-                "regionId must not be blank",
-                "lawyerId must not be blank"
+        var errorMessages = response.errors().stream().map(JsonError::title).toList();
+        assertThat(errorMessages).containsExactlyInAnyOrder(
+                "must not be blank",
+                "must not be blank",
+                "must not be blank",
+                "must not be blank"
         );
+        var errorPointers = response.errors().stream().map(error -> error.source().pointer()).toList();
+        assertThat(errorPointers).containsExactlyInAnyOrder(
+                "/createClaim/number",
+                "/createClaim/agencyId",
+                "/createClaim/regionId",
+                "/createClaim/lawyerId"
+        );
+    }
+
+    @Test
+    public void translatesDomainException() {
+        var response = webClient.post().uri("/claims")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("" +
+                        "{" +
+                        "   \"number\": \"1\"," +
+                        "   \"agencyId\": \"1\"," +
+                        "   \"regionId\": \"1\"," +
+                        "   \"lawyerId\": \"1\"" +
+                        "}")
+                .exchange()
+                .expectStatus().isBadRequest()
+                .returnResult(JsonResponse.class)
+                .getResponseBody()
+                .blockFirst();
+        var errorMessages = response.errors().stream().map(JsonError::title).toList();
+        assertThat(errorMessages).containsExactlyInAnyOrder("Claim with specified number already exists");
+        var errorPointers = response.errors().stream().map(error -> error.source().pointer()).toList();
+        assertThat(errorPointers).containsExactlyInAnyOrder("/createClaim/number");
     }
 
     @Test
@@ -105,7 +134,6 @@ public class CreateClaimIntegrationTest {
                 .returnResult(Claim.class)
                 .getResponseBody()
                 .blockFirst();
-        assertThat(claim.id()).isNotNull();
         assertThat(claim.number()).isEqualTo("6");
         assertThat(claim.agencyId()).isEqualTo(agencyId);
         assertThat(claim.regionId()).isEqualTo(regionId);

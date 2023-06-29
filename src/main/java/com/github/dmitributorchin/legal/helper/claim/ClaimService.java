@@ -1,5 +1,7 @@
 package com.github.dmitributorchin.legal.helper.claim;
 
+import com.github.dmitributorchin.legal.helper.DomainException;
+import com.github.dmitributorchin.legal.helper.JsonErrorSource;
 import com.github.dmitributorchin.legal.helper.agency.AgencyEntity;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerRepository;
 import com.github.dmitributorchin.legal.helper.region.RegionEntity;
@@ -26,6 +28,11 @@ public class ClaimService {
     }
 
     public Claim createClaim(CreateClaim claim) {
+        if (claimRepository.existsById(claim.number())) {
+            var errorSource = new JsonErrorSource("/createClaim/number");
+            throw new DomainException("Claim with specified number already exists", errorSource);
+        }
+
         var entity = new ClaimEntity();
         entity.setNumber(claim.number());
         var agency = new AgencyEntity();
@@ -43,7 +50,6 @@ public class ClaimService {
 
     private Claim toClaim(ClaimEntity entity) {
         return new Claim(
-                entity.getId().toString(),
                 entity.getNumber(),
                 entity.getAgency().getId().toString(),
                 entity.getRegion().getId().toString(),
