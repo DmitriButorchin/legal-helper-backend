@@ -1,18 +1,39 @@
 package com.github.dmitributorchin.legal.helper.claim;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+import java.time.LocalDate;
 
 public record CreateClaim(
         @NotBlank
-        String number,
+        String registrationNumber,
 
         @NotBlank
-        String agencyId,
+        String correspondentId, // TODO: validation
+
+        @NotNull
+        LocalDate creationDate,
 
         @NotBlank
-        String regionId,
+        String creationNumber, // TODO: validation
 
         @NotBlank
-        String lawyerId
+        String summary,
+
+        @NotBlank
+        String responsible,
+
+        @NotBlank
+        String regionId, // TODO: validation
+
+        @NotBlank
+        String lawyerId, // TODO: validation
+
+        @NotBlank
+        String defendant,
+
+        @NotNull
+        LocalDate deadline
 ) {
 }

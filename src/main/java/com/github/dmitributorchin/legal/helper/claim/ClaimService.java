@@ -2,13 +2,14 @@ package com.github.dmitributorchin.legal.helper.claim;
 
 import com.github.dmitributorchin.legal.helper.DomainException;
 import com.github.dmitributorchin.legal.helper.JsonErrorSource;
-import com.github.dmitributorchin.legal.helper.agency.AgencyEntity;
+import com.github.dmitributorchin.legal.helper.correspondent.CorrespondentEntity;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerRepository;
 import com.github.dmitributorchin.legal.helper.region.RegionEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -27,33 +28,52 @@ public class ClaimService {
                 .collect(Collectors.toList());
     }
 
-    public Claim createClaim(CreateClaim claim) {
-        if (claimRepository.existsById(claim.number())) {
-            var errorSource = new JsonErrorSource("/createClaim/number");
-            throw new DomainException("Claim with specified number already exists", errorSource);
+    private Claim toClaim(ClaimEntity entity) {
+        return new Claim(
+                entity.getRegistrationNumber(),
+                entity.getCorrespondent().getId().toString(),
+                entity.getRegion().getId().toString(),
+                entity.getLawyer().getId().toString()
+        );
+    }
+
+    public ClaimCreated createClaim(CreateClaim claim) {
+        if (claimRepository.existsById(claim.registrationNumber())) {
+            var errorSource = new JsonErrorSource("/createClaim/registrationNumber");
+            throw new DomainException("Claim with specified registration number already exists", errorSource);
         }
 
         var entity = new ClaimEntity();
-        entity.setNumber(claim.number());
-        var agency = new AgencyEntity();
-        agency.setId(UUID.fromString(claim.agencyId()));
-        entity.setAgency(agency);
+        entity.setRegistrationNumber(claim.registrationNumber());
+        var correspondent = new CorrespondentEntity();
+        correspondent.setId(UUID.fromString(claim.correspondentId()));
+        entity.setCorrespondent(correspondent);
+        entity.setCreationDate(claim.creationDate());
+        entity.setCreationNumber(claim.creationNumber());
+        entity.setSummary(claim.summary());
+        entity.setResponsible(claim.responsible());
         var region = new RegionEntity();
         region.setId(UUID.fromString(claim.regionId()));
         entity.setRegion(region);
         var lawyer = lawyerRepository.findById(UUID.fromString(claim.lawyerId())).get();
         lawyer.setClaimCount(lawyer.getClaimCount() + 1);
         entity.setLawyer(lawyer);
+        entity.setDefendant(claim.defendant());
+        entity.setDeadline(claim.deadline());
         claimRepository.save(entity);
-        return toClaim(entity);
-    }
 
-    private Claim toClaim(ClaimEntity entity) {
-        return new Claim(
-                entity.getNumber(),
-                entity.getAgency().getId().toString(),
+        return new ClaimCreated(
+                entity.getRegistrationDate().format(DateTimeFormatter.ISO_DATE),
+                entity.getRegistrationNumber(),
+                entity.getCorrespondent().getId().toString(),
+                entity.getCreationDate().format(DateTimeFormatter.ISO_DATE),
+                entity.getCreationNumber(),
+                entity.getSummary(),
+                entity.getResponsible(),
                 entity.getRegion().getId().toString(),
-                entity.getLawyer().getId().toString()
+                entity.getLawyer().getId().toString(),
+                entity.getDefendant(),
+                entity.getDeadline().format(DateTimeFormatter.ISO_DATE)
         );
     }
 }

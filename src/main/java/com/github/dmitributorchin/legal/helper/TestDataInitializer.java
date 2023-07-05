@@ -1,9 +1,9 @@
 package com.github.dmitributorchin.legal.helper;
 
-import com.github.dmitributorchin.legal.helper.agency.AgencyEntity;
-import com.github.dmitributorchin.legal.helper.agency.AgencyRepository;
 import com.github.dmitributorchin.legal.helper.claim.ClaimService;
 import com.github.dmitributorchin.legal.helper.claim.CreateClaim;
+import com.github.dmitributorchin.legal.helper.correspondent.CorrespondentEntity;
+import com.github.dmitributorchin.legal.helper.correspondent.CorrespondentRepository;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerEntity;
 import com.github.dmitributorchin.legal.helper.lawyer.LawyerRepository;
 import com.github.dmitributorchin.legal.helper.region.RegionEntity;
@@ -13,21 +13,23 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
 public class TestDataInitializer implements ApplicationRunner {
-    private final AgencyRepository agencyRepository;
+    private final CorrespondentRepository correspondentRepository;
     private final RegionRepository regionRepository;
     private final LawyerRepository lawyerRepository;
     private final ClaimService claimService;
 
     @Override
     public void run(ApplicationArguments args) {
-        var localCourt = createAgency("Местный Суд");
-        var supremeCourt = createAgency("Верховный Суд");
-        agencyRepository.saveAll(List.of(localCourt, supremeCourt));
+        var localCourt = createCorrespondent("Местный Суд");
+        var supremeCourt = createCorrespondent("Верховный Суд");
+        correspondentRepository.saveAll(List.of(localCourt, supremeCourt));
 
         var northRegion = createRegion("Северный");
         var southRegion = createRegion("Южный");
@@ -40,15 +42,15 @@ public class TestDataInitializer implements ApplicationRunner {
         var fedor = createLawyer("B103", "Федор", "Гром", southRegion);
         lawyerRepository.saveAll(List.of(alex, ivan, helen, igor, fedor));
 
-        claimService.createClaim(createClaim("1", localCourt, northRegion, alex));
-        claimService.createClaim(createClaim("2", supremeCourt, northRegion, ivan));
-        claimService.createClaim(createClaim("3", localCourt, southRegion, helen));
-        claimService.createClaim(createClaim("4", supremeCourt, southRegion, igor));
-        claimService.createClaim(createClaim("5", supremeCourt, southRegion, fedor));
+        claimService.createClaim(createClaim("1", localCourt, "2023-06-01", "1", northRegion, alex));
+        claimService.createClaim(createClaim("2", supremeCourt, "2023-06-02", "1", northRegion, ivan));
+        claimService.createClaim(createClaim("3", localCourt, "2023-06-03", "2", southRegion, helen));
+        claimService.createClaim(createClaim("4", supremeCourt, "2023-06-04", "2", southRegion, igor));
+        claimService.createClaim(createClaim("5", supremeCourt, "2023-06-05", "3", southRegion, fedor));
     }
 
-    private AgencyEntity createAgency(String title) {
-        var entity = new AgencyEntity();
+    private CorrespondentEntity createCorrespondent(String title) {
+        var entity = new CorrespondentEntity();
         entity.setTitle(title);
         return entity;
     }
@@ -68,12 +70,25 @@ public class TestDataInitializer implements ApplicationRunner {
         return entity;
     }
 
-    private CreateClaim createClaim(String number, AgencyEntity agency, RegionEntity region, LawyerEntity lawyer) {
+    private CreateClaim createClaim(
+            String number,
+            CorrespondentEntity correspondent,
+            String creationDate,
+            String creationNumber,
+            RegionEntity region,
+            LawyerEntity lawyer
+    ) {
         return new CreateClaim(
                 number,
-                agency.getId().toString(),
+                correspondent.getId().toString(),
+                LocalDate.parse(creationDate),
+                creationNumber,
+                "Обращение",
+                "Артур Пирожков",
                 region.getId().toString(),
-                lawyer.getId().toString()
+                lawyer.getId().toString(),
+                "НН",
+                LocalDate.parse(creationDate).plus(15, ChronoUnit.DAYS)
         );
     }
 }

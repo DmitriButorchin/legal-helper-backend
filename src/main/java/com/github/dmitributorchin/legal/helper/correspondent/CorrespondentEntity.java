@@ -1,4 +1,4 @@
-package com.github.dmitributorchin.legal.helper.agency;
+package com.github.dmitributorchin.legal.helper.correspondent;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -10,10 +10,10 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "agency")
+@Table(name = "correspondent")
 @Getter
 @Setter
-public class AgencyEntity {
+public class CorrespondentEntity {
     @Id
     @GeneratedValue
     private UUID id;

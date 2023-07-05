@@ -20,7 +20,7 @@ public class ClaimController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Claim createClaim(@RequestBody @Valid CreateClaim claim) {
+    public ClaimCreated createClaim(@RequestBody @Valid CreateClaim claim) {
         return claimService.createClaim(claim);
     }
 }
