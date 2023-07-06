@@ -1,5 +1,6 @@
 package com.github.dmitributorchin.legal.helper.lawyer;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class LawyerService {
     private final LawyerRepository lawyerRepository;

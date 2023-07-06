@@ -14,14 +14,22 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.data.auditing.AuditingHandler;
+import org.springframework.data.auditing.DateTimeProvider;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.test.web.servlet.client.MockMvcWebTestClient;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CreateClaimIntegrationTest {
@@ -46,6 +54,12 @@ public class CreateClaimIntegrationTest {
     private String regionId;
     private String lawyerId;
 
+    @MockBean
+    private DateTimeProvider dateTimeProvider;
+
+    @SpyBean
+    private AuditingHandler auditingHandler;
+
     @BeforeEach
     public void setup() {
         webClient = MockMvcWebTestClient.bindToController(claimController, lawyerController)
@@ -64,6 +78,11 @@ public class CreateClaimIntegrationTest {
         lawyer.setRegion(region);
         lawyerRepository.save(lawyer);
         lawyerId = lawyer.getId().toString();
+
+        when(dateTimeProvider.getNow()).thenReturn(Optional.of(
+                LocalDate.of(2023, Month.APRIL, 20)
+        ));
+        auditingHandler.setDateTimeProvider(dateTimeProvider);
     }
 
     @Test
@@ -152,7 +171,7 @@ public class CreateClaimIntegrationTest {
                 .returnResult(ClaimCreated.class)
                 .getResponseBody()
                 .blockFirst();
-        assertThat(claim.registrationDate()).isEqualTo("2023-07-05"); // TODO: mock date
+        assertThat(claim.registrationDate()).isEqualTo("2023-04-20");
         assertThat(claim.registrationNumber()).isEqualTo("6");
         assertThat(claim.correspondentId()).isEqualTo(correspondentId);
         assertThat(claim.creationDate()).isEqualTo("2023-07-01");
