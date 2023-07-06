@@ -19,4 +19,15 @@ public class RegionService {
                 .map(entity -> new Region(entity.getId().toString(), entity.getTitle()))
                 .collect(Collectors.toList());
     }
+
+    public RegionCreated createRegion(CreateRegion region) {
+        var entity = new RegionEntity();
+        entity.setTitle(region.title());
+        regionRepository.save(entity);
+
+        return new RegionCreated(
+                entity.getId().toString(),
+                entity.getTitle()
+        );
+    }
 }
