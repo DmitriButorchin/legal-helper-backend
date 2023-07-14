@@ -68,7 +68,7 @@ public class TestDataInitializer implements ApplicationRunner {
                 "Обращение",
                 "Артур Пирожков",
                 region.getId().toString(),
-                lawyer.getId().toString(),
+                lawyer.getSsn(),
                 "НН",
                 LocalDate.parse("2023-06-16")
         );

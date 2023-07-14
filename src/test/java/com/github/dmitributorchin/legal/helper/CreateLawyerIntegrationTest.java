@@ -1,8 +1,10 @@
 package com.github.dmitributorchin.legal.helper;
 
+import com.github.dmitributorchin.legal.helper.lawyer.LawyerController;
+import com.github.dmitributorchin.legal.helper.lawyer.LawyerCreated;
 import com.github.dmitributorchin.legal.helper.region.Region;
-import com.github.dmitributorchin.legal.helper.region.RegionController;
-import com.github.dmitributorchin.legal.helper.region.RegionCreated;
+import com.github.dmitributorchin.legal.helper.region.RegionEntity;
+import com.github.dmitributorchin.legal.helper.region.RegionRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,23 +18,34 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+// TODO: refactor integration tests
+// TODO: change repository calls to create something with rest calls
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CreateRegionIntegrationTest {
+public class CreateLawyerIntegrationTest {
     @Autowired
-    private RegionController regionController;
+    private LawyerController lawyerController;
 
     private WebTestClient webClient;
 
+    @Autowired
+    private RegionRepository regionRepository;
+
+    private String regionId;
+
     @BeforeEach
     public void setup() {
-        webClient = MockMvcWebTestClient.bindToController(regionController)
+        webClient = MockMvcWebTestClient.bindToController(lawyerController)
                 .controllerAdvice(GlobalExceptionHandler.class)
                 .build();
+
+        var region = new RegionEntity();
+        regionRepository.save(region);
+        regionId = region.getId().toString();
     }
 
     @Test
     public void performsValidation() {
-        var response = webClient.post().uri("/regions")
+        var response = webClient.post().uri("/lawyers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("{}")
                 .exchange()
@@ -46,38 +59,47 @@ public class CreateRegionIntegrationTest {
                         JsonError::title
                 ));
         assertThat(errors).containsExactlyInAnyOrderEntriesOf(Map.of(
-                "/createRegion/title", "must not be blank"
+                "/createLawyer/ssn", "must not be blank",
+                "/createLawyer/firstName", "must not be blank",
+                "/createLawyer/lastName", "must not be blank",
+                "/createLawyer/regionId", "must not be blank"
         ));
     }
 
     @Test
-    public void createsRegion() {
-        var regions = webClient.get().uri("/regions")
+    public void createsLawyer() {
+        var lawyers = webClient.get().uri("/lawyers")
                 .exchange()
                 .expectBodyList(Region.class)
                 .returnResult()
                 .getResponseBody();
-        var size = regions.size();
+        var size = lawyers.size();
 
-        var correspondent = webClient.post().uri("/regions")
+        var lawyer = webClient.post().uri("/lawyers")
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue("" +
                         "{" +
-                        "   \"title\":\"Region\"" +
+                        "   \"ssn\":\"A102\"," +
+                        "   \"firstName\":\"Jim\"," +
+                        "   \"lastName\":\"Beam\"," +
+                        "   \"regionId\":\"" + regionId + "\"" +
                         "}")
                 .exchange()
                 .expectStatus().isCreated()
-                .returnResult(RegionCreated.class)
+                .returnResult(LawyerCreated.class)
                 .getResponseBody()
                 .blockFirst();
-        assertThat(correspondent.id()).isNotNull();
-        assertThat(correspondent.title()).isEqualTo("Region");
+        assertThat(lawyer.ssn()).isEqualTo("A102");
+        assertThat(lawyer.firstName()).isEqualTo("Jim");
+        assertThat(lawyer.lastName()).isEqualTo("Beam");
+        assertThat(lawyer.regionId()).isEqualTo(regionId);
+        assertThat(lawyer.claimCount()).isEqualTo(0);
 
-        regions = webClient.get().uri("/regions")
+        lawyers = webClient.get().uri("/lawyers")
                 .exchange()
                 .expectBodyList(Region.class)
                 .returnResult()
                 .getResponseBody();
-        assertThat(regions).hasSize(size + 1);
+        assertThat(lawyers).hasSize(size + 1);
     }
 }

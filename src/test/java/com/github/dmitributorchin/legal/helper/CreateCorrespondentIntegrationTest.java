@@ -57,7 +57,7 @@ public class CreateCorrespondentIntegrationTest {
                 .expectBodyList(Correspondent.class)
                 .returnResult()
                 .getResponseBody();
-        assertThat(correspondents).hasSize(1);
+        var size = correspondents.size();
 
         var correspondent = webClient.post().uri("/correspondents")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,6 +78,6 @@ public class CreateCorrespondentIntegrationTest {
                 .expectBodyList(Correspondent.class)
                 .returnResult()
                 .getResponseBody();
-        assertThat(correspondents).hasSize(2);
+        assertThat(correspondents).hasSize(size + 1);
     }
 }

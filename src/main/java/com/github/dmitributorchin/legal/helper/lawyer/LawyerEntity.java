@@ -5,18 +5,14 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.UUID;
-
 @Entity
 @Table(name = "lawyer")
 @Getter
 @Setter
 public class LawyerEntity {
     @Id
-    @GeneratedValue
-    private UUID id;
-
     private String ssn;
+
     private String firstName;
     private String lastName;
 

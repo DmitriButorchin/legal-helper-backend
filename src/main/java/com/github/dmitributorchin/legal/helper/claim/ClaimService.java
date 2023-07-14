@@ -33,7 +33,7 @@ public class ClaimService {
                 entity.getRegistrationNumber(),
                 entity.getCorrespondent().getId().toString(),
                 entity.getRegion().getId().toString(),
-                entity.getLawyer().getId().toString()
+                entity.getLawyer().getSsn()
         );
     }
 
@@ -55,7 +55,7 @@ public class ClaimService {
         var region = new RegionEntity();
         region.setId(UUID.fromString(claim.regionId()));
         entity.setRegion(region);
-        var lawyer = lawyerRepository.findById(UUID.fromString(claim.lawyerId())).get();
+        var lawyer = lawyerRepository.findById(claim.lawyerSsn()).get();
         lawyer.setClaimCount(lawyer.getClaimCount() + 1);
         entity.setLawyer(lawyer);
         entity.setDefendant(claim.defendant());
@@ -71,7 +71,7 @@ public class ClaimService {
                 entity.getSummary(),
                 entity.getResponsible(),
                 entity.getRegion().getId().toString(),
-                entity.getLawyer().getId().toString(),
+                entity.getLawyer().getSsn(),
                 entity.getDefendant(),
                 entity.getDeadline().format(DateTimeFormatter.ISO_DATE)
         );

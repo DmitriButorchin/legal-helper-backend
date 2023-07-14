@@ -11,7 +11,6 @@ import org.springframework.data.domain.Persistable;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
-import java.time.Period;
 
 @Entity
 @Table(name = "claim")
@@ -95,6 +94,6 @@ public class ClaimEntity implements Persistable<String> {
 
     @Override
     public boolean isNew() {
-        return getRegistrationDate() == null;
+        return registrationDate == null;
     }
 }

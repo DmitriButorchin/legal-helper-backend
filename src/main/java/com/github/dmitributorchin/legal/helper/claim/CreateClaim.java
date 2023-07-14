@@ -28,7 +28,7 @@ public record CreateClaim(
         String regionId, // TODO: validation
 
         @NotBlank
-        String lawyerId, // TODO: validation
+        String lawyerSsn, // TODO: validation
 
         @NotBlank
         String defendant,

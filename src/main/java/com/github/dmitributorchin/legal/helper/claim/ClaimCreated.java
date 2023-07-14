@@ -9,7 +9,7 @@ public record ClaimCreated(
         String summary,
         String responsible,
         String regionId,
-        String lawyerId,
+        String lawyerSsn,
         String defendant,
         String deadline
 ) {

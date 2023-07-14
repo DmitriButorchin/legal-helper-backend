@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+// TODO: cleanup data in tests
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CreateClaimIntegrationTest {
     @Autowired
@@ -52,7 +53,7 @@ public class CreateClaimIntegrationTest {
 
     private String correspondentId;
     private String regionId;
-    private String lawyerId;
+    private String lawyerSsn;
 
     @MockBean
     private DateTimeProvider dateTimeProvider;
@@ -75,9 +76,10 @@ public class CreateClaimIntegrationTest {
         regionId = region.getId().toString();
 
         var lawyer = new LawyerEntity();
+        lawyer.setSsn("A103");
         lawyer.setRegion(region);
         lawyerRepository.save(lawyer);
-        lawyerId = lawyer.getId().toString();
+        lawyerSsn = lawyer.getSsn();
 
         when(dateTimeProvider.getNow()).thenReturn(Optional.of(
                 LocalDate.of(2023, Month.APRIL, 20)
@@ -108,7 +110,7 @@ public class CreateClaimIntegrationTest {
                 "/createClaim/summary", "must not be blank",
                 "/createClaim/responsible", "must not be blank",
                 "/createClaim/regionId", "must not be blank",
-                "/createClaim/lawyerId", "must not be blank",
+                "/createClaim/lawyerSsn", "must not be blank",
                 "/createClaim/defendant", "must not be blank",
                 "/createClaim/deadline", "must not be null"
         ));
@@ -127,7 +129,7 @@ public class CreateClaimIntegrationTest {
                         "   \"summary\": \"1\"," +
                         "   \"responsible\": \"1\"," +
                         "   \"regionId\": \"1\"," +
-                        "   \"lawyerId\": \"1\"," +
+                        "   \"lawyerSsn\": \"1\"," +
                         "   \"defendant\": \"1\"," +
                         "   \"deadline\": \"1999-01-01\"" +
                         "}")
@@ -144,12 +146,12 @@ public class CreateClaimIntegrationTest {
 
     @Test
     public void createsClaim() {
-        var lawyer = webClient.get().uri("/lawyers/" + lawyerId)
+        var lawyer = webClient.get().uri("/lawyers/" + lawyerSsn)
                 .exchange()
                 .returnResult(GetLawyer.class)
                 .getResponseBody()
                 .blockFirst();
-        assertThat(lawyer.claimCount()).isEqualTo(0);
+        var claimCount = lawyer.claimCount();
 
         var claim = webClient.post().uri("/claims")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -162,7 +164,7 @@ public class CreateClaimIntegrationTest {
                         "   \"summary\":\"IOU\"," +
                         "   \"responsible\":\"Ivan\"," +
                         "   \"regionId\":\"" + regionId + "\"," +
-                        "   \"lawyerId\":\"" + lawyerId + "\"," +
+                        "   \"lawyerSsn\":\"" + lawyerSsn + "\"," +
                         "   \"defendant\":\"Mike\"," +
                         "   \"deadline\":\"2023-11-01\"" +
                         "}")
@@ -179,15 +181,15 @@ public class CreateClaimIntegrationTest {
         assertThat(claim.summary()).isEqualTo("IOU");
         assertThat(claim.responsible()).isEqualTo("Ivan");
         assertThat(claim.regionId()).isEqualTo(regionId);
-        assertThat(claim.lawyerId()).isEqualTo(lawyerId);
+        assertThat(claim.lawyerSsn()).isEqualTo(lawyerSsn);
         assertThat(claim.defendant()).isEqualTo("Mike");
         assertThat(claim.deadline()).isEqualTo("2023-11-01");
 
-        lawyer = webClient.get().uri("/lawyers/" + lawyerId)
+        lawyer = webClient.get().uri("/lawyers/" + lawyerSsn)
                 .exchange()
                 .returnResult(GetLawyer.class)
                 .getResponseBody()
                 .blockFirst();
-        assertThat(lawyer.claimCount()).isEqualTo(1);
+        assertThat(lawyer.claimCount()).isEqualTo(claimCount + 1);
     }
 }

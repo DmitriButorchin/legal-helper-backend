@@ -1,5 +1,6 @@
 package com.github.dmitributorchin.legal.helper.lawyer;
 
+import com.github.dmitributorchin.legal.helper.region.RegionEntity;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,6 @@ public class LawyerService {
         return lawyerRepository.findAll()
                 .stream()
                 .map(entity -> new GetLawyers(
-                        entity.getId().toString(),
                         entity.getSsn(),
                         entity.getFirstName(),
                         entity.getLastName(),
@@ -29,12 +29,30 @@ public class LawyerService {
     }
 
     public GetLawyer getLawyer(String id) {
-        var entity = lawyerRepository.findById(UUID.fromString(id)).get();
+        var entity = lawyerRepository.findById(id).get();
         return new GetLawyer(
-                entity.getId().toString(),
                 entity.getSsn(),
                 entity.getFirstName(),
                 entity.getLastName(),
+                entity.getClaimCount()
+        );
+    }
+
+    public LawyerCreated createLawyer(CreateLawyer lawyer) {
+        var entity = new LawyerEntity();
+        entity.setSsn(lawyer.ssn());
+        entity.setFirstName(lawyer.firstName());
+        entity.setLastName(lawyer.lastName());
+        var region = new RegionEntity();
+        region.setId(UUID.fromString(lawyer.regionId()));
+        entity.setRegion(region);
+        lawyerRepository.save(entity);
+
+        return new LawyerCreated(
+                entity.getSsn(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getRegion().getId().toString(),
                 entity.getClaimCount()
         );
     }

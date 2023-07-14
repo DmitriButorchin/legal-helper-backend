@@ -1,10 +1,9 @@
 package com.github.dmitributorchin.legal.helper.lawyer;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -19,8 +18,14 @@ public class LawyerController {
         return lawyerService.getAllLawyers();
     }
 
-    @GetMapping("/{id}")
-    public GetLawyer getLawyer(@PathVariable String id) {
-        return lawyerService.getLawyer(id);
+    @GetMapping("/{ssn}")
+    public GetLawyer getLawyer(@PathVariable String ssn) {
+        return lawyerService.getLawyer(ssn);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public LawyerCreated createLawyer(@RequestBody @Valid CreateLawyer lawyer) {
+        return lawyerService.createLawyer(lawyer);
     }
 }
